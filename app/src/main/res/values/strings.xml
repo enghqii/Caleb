@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WatchFaceHack</string>
+    <string name="analog_name">Sample Analog</string>
+    <string name="digital_name">Sample Digital</string>
+</resources>
