@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">WatchFaceHack</string>
-    <string name="analog_name">Sample Analog</string>
-    <string name="digital_name">Sample Digital</string>
+    <string name="analog_name">WatchFaceHack</string>
+    <string name="calendar_name">WatchFaceHackCalendar</string>
 </resources>
