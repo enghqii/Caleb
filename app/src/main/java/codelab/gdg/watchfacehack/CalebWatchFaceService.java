@@ -11,16 +11,30 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
+import android.util.Log;
 import android.view.SurfaceHolder;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
 
 import java.util.concurrent.TimeUnit;
 
 public class CalebWatchFaceService extends CanvasWatchFaceService {
+    private static final String TAG = "CalebWatchFaceService";
+
     /*** 서비스가 시스템에 로드될때 대부분의 리소스를 로드해야함 ***/
     /*** 모드는 3가지 Interactive, Ambient, Unvisible  ***/
 
@@ -31,7 +45,8 @@ public class CalebWatchFaceService extends CanvasWatchFaceService {
 
 
     /*** 엔진의 콜백만 잘 만들면 제대로 동작함 ***/
-    private class Engine extends CanvasWatchFaceService.Engine {
+    private class Engine extends CanvasWatchFaceService.Engine implements DataApi.DataListener,
+            GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
         final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1); //1초->millis(1000)
         static final int MSG_UPDATE_TIME = 0;   //핸들러 구분 메시지
 
@@ -44,6 +59,13 @@ public class CalebWatchFaceService extends CanvasWatchFaceService {
         Paint mHourPaint;
         Paint mMinutePaint;
         Paint mSecondPaint;
+
+        //googleAipClient
+        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(CalebWatchFaceService.this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
 
         /* Interactive 모드일 때, 1초에 한번 시간을 업데이트 하기 위해 사용하는 핸들러 */
         final Handler mUpdateTimeHandler = new Handler() {
@@ -138,6 +160,8 @@ public class CalebWatchFaceService extends CanvasWatchFaceService {
             super.onVisibilityChanged(visible);
             /* 워치페이스가 보이게 되거나 안보이게될 때 호출되는 콜백 */
             if (visible) {
+                mGoogleApiClient.connect();
+
                 /* Timezone 리시버가 등록되지 않았다면 등록 */
                 if (mRegisteredTimeZoneReceiver == false) {
                     mRegisteredTimeZoneReceiver = true;
@@ -149,6 +173,11 @@ public class CalebWatchFaceService extends CanvasWatchFaceService {
                 if (mRegisteredTimeZoneReceiver == true) {
                     mRegisteredTimeZoneReceiver = false;
                     CalebWatchFaceService.this.unregisterReceiver(mTimeZoneReceiver);
+                }
+
+                if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+                    Wearable.DataApi.removeListener(mGoogleApiClient, this);
+                    mGoogleApiClient.disconnect();
                 }
             }
             updateTimer();
@@ -231,6 +260,138 @@ public class CalebWatchFaceService extends CanvasWatchFaceService {
             float hrY = (float) -Math.cos(hrRot) * hrLength;
             canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY,
                     mHourPaint);
+        }
+
+
+
+
+
+        private void updateConfigDataItemAndUiOnStartup() {
+            CalebWatchFaceUtil.fetchConfigDataMap(mGoogleApiClient,
+                    new CalebWatchFaceUtil.FetchConfigDataMapCallback() {
+                        @Override
+                        public void onConfigDataMapFetched(DataMap startupConfig) {
+                            // If the DataItem hasn't been created yet or some keys are missing,
+                            // use the default values.
+                            setDefaultValuesForMissingConfigKeys(startupConfig);
+                            CalebWatchFaceUtil.putConfigDataItem(mGoogleApiClient, startupConfig);
+
+                            updateUiForConfigDataMap(startupConfig);
+                        }
+                    }
+            );
+        }
+
+        private void setDefaultValuesForMissingConfigKeys(DataMap config) {
+            /*addIntKeyIfMissing(config, DigitalWatchFaceUtil.KEY_BACKGROUND_COLOR,
+                    DigitalWatchFaceUtil.COLOR_VALUE_DEFAULT_AND_AMBIENT_BACKGROUND);
+            addIntKeyIfMissing(config, DigitalWatchFaceUtil.KEY_HOURS_COLOR,
+                    DigitalWatchFaceUtil.COLOR_VALUE_DEFAULT_AND_AMBIENT_HOUR_DIGITS);
+            addIntKeyIfMissing(config, DigitalWatchFaceUtil.KEY_MINUTES_COLOR,
+                    DigitalWatchFaceUtil.COLOR_VALUE_DEFAULT_AND_AMBIENT_MINUTE_DIGITS);
+            addIntKeyIfMissing(config, DigitalWatchFaceUtil.KEY_SECONDS_COLOR,
+                    DigitalWatchFaceUtil.COLOR_VALUE_DEFAULT_AND_AMBIENT_SECOND_DIGITS);*/
+        }
+
+        private void addIntKeyIfMissing(DataMap config, String key, int color) {
+            if (!config.containsKey(key)) {
+                config.putInt(key, color);
+            }
+        }
+
+        private void updateUiForConfigDataMap(final DataMap config) {
+            boolean uiUpdated = false;
+            for (String configKey : config.keySet()) {
+                if (!config.containsKey(configKey)) {
+                    continue;
+                }
+                int color = config.getInt(configKey);
+                if (Log.isLoggable(TAG, Log.DEBUG)) {
+                    Log.d(TAG, "Found watch face config key: " + configKey + " -> "
+                            + Integer.toHexString(color));
+                }
+                if (updateUiForKey(configKey, color)) {
+                    uiUpdated = true;
+                }
+            }
+            if (uiUpdated) {
+                invalidate();
+            }
+        }
+
+        /**
+         * Updates the color of a UI item according to the given {@code configKey}. Does nothing if
+         * {@code configKey} isn't recognized.
+         *
+         * @return whether UI has been updated
+         */
+        private boolean updateUiForKey(String configKey, int color) {
+            /*if (configKey.equals(CalebWatchFaceUtil.KEY_BACKGROUND_COLOR)) {
+                setInteractiveBackgroundColor(color);
+            } else if (configKey.equals(CalebWatchFaceUtil.KEY_HOURS_COLOR)) {
+                setInteractiveHourDigitsColor(color);
+            } else if (configKey.equals(CalebWatchFaceUtil.KEY_MINUTES_COLOR)) {
+                setInteractiveMinuteDigitsColor(color);
+            } else if (configKey.equals(CalebWatchFaceUtil.KEY_SECONDS_COLOR)) {
+                setInteractiveSecondDigitsColor(color);
+            } else {
+                Log.w(TAG, "Ignoring unknown config key: " + configKey);
+                return false;
+            }*/
+            return true;
+        }
+
+
+        /*** ConnectCallback ***/
+        @Override
+        public void onConnected(Bundle connectionHint) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onConnected: " + connectionHint);
+            }
+            Wearable.DataApi.addListener(mGoogleApiClient, Engine.this);
+            updateConfigDataItemAndUiOnStartup();
+        }
+
+        @Override
+        public void onConnectionSuspended(int cause) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onConnectionSuspended: " + cause);
+            }
+        }
+
+        /*** DataListener ***/
+        @Override
+        public void onDataChanged(DataEventBuffer dataEvents) {
+            try {
+                for (DataEvent dataEvent : dataEvents) {
+                    if (dataEvent.getType() != DataEvent.TYPE_CHANGED) {
+                        continue;
+                    }
+
+                    DataItem dataItem = dataEvent.getDataItem();
+                    if (!dataItem.getUri().getPath().equals(
+                            CalebWatchFaceUtil.PATH_WITH_FEATURE)) {
+                        continue;
+                    }
+
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+                    DataMap config = dataMapItem.getDataMap();
+                    if (Log.isLoggable(TAG, Log.DEBUG)) {
+                        Log.d(TAG, "Config DataItem updated:" + config);
+                    }
+                    updateUiForConfigDataMap(config);
+                }
+            } finally {
+                dataEvents.close();
+            }
+        }
+
+        /*** FailedListener ***/
+        @Override
+        public void onConnectionFailed(ConnectionResult result) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onConnectionFailed: " + result);
+            }
         }
     }
 }

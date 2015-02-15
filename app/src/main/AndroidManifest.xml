@@ -69,10 +69,10 @@
                 android:resource="@drawable/preview_analog_circular" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.companionConfigurationAction"
-                android:value="com.gdg.android.wearable.watchface.CONFIG_CALEB" />
+                android:value="codelab.gdg.watchface.CONFIG_DIGITAL" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.wearableConfigurationAction"
-                android:value="com.gdg.android.wearable.watchface.CONFIG_CALEB" />
+                android:value="codelab.gdg.watchface.CONFIG_DIGITAL" />
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
                 <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
@@ -83,11 +83,17 @@
             android:name=".CalebWatchFaceMainActivity"
             android:label="@string/caleb_name">
             <intent-filter>
-                <action android:name="com.gdg.android.wearable.watchface.CONFIG_CALEB" />
+                <action android:name="codelab.gdg.watchface.CONFIG_DIGITAL" />
                 <category android:name="com.google.android..wearable.watchface.category.WEARABLE_CONFIGURATION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <service android:name=".CalebWatchFaceConfigListnerService">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
+            </intent-filter>
+        </service>
 
         <meta-data
             android:name="com.google.android.gms.version"
