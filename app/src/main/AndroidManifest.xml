@@ -56,18 +56,6 @@
              단, 한개의 웨어러블 앱은 여러개의 Watch Face를 소유할 수 있다.
              따라서 여러 Watch Face를 가진 웨어러블 앱을 만드려면 여러개의 Service를 생성하면 된다.
         -->
-
-
-        <activity
-            android:name=".CalebWatchFaceMainActivity"
-            android:label="@string/caleb_name">
-            <intent-filter>
-                <action android:name="com.google.android.wearable.watchface.CONFIG_DIGITAL" />
-                <category android:name="com.google.android.wearable.watchface.category.WEARABLE_CONFIGURATION" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity
-            >
     </application>
 
 </manifest>
