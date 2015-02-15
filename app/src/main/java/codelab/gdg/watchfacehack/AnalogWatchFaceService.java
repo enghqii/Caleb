@@ -39,12 +39,11 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
         Bitmap  mBackgroundBitmap;
         Bitmap  mBackgroundScaledBitmap;
 
-        Paint   mHourPaint;
-        Paint   mMinutePaint;
-        Paint   mSecondPaint;
+        Bitmap  mTopBitmap;
 
         Paint   mTimePaint;
         Paint   mProgressPaint;
+        Paint   mSpeedPaint;
 
         /* Interactive 모드일 때, 1초에 한번 시간을 업데이트 하기 위해 사용하는 핸들러 */
         final Handler mUpdateTimeHandler = new Handler() {
@@ -100,36 +99,24 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
             Resources resources = AnalogWatchFaceService.this.getResources();
             Drawable backgroundDrawable = resources.getDrawable(R.drawable.bg);
             mBackgroundBitmap = ((BitmapDrawable) backgroundDrawable).getBitmap();
+            mTopBitmap = ((BitmapDrawable) resources.getDrawable(R.drawable.top)).getBitmap();
 
             /* 그래픽 객체를 생성합니다 */
-            mHourPaint = new Paint();
-            mHourPaint.setARGB(255, 242, 105, 56);
-            mHourPaint.setStrokeWidth(5.f);
-            mHourPaint.setAntiAlias(true);
-            mHourPaint.setStrokeCap(Paint.Cap.ROUND);
-
-            mMinutePaint = new Paint();
-            mMinutePaint.setARGB(255, 217, 174, 48);
-            mMinutePaint.setStrokeWidth(3.f);
-            mMinutePaint.setAntiAlias(true);
-            mMinutePaint.setStrokeCap(Paint.Cap.ROUND);
-
-            mSecondPaint = new Paint();
-            mSecondPaint.setARGB(255, 3, 115, 115);
-            mSecondPaint.setStrokeWidth(2.f);
-            mSecondPaint.setAntiAlias(true);
-            mSecondPaint.setStrokeCap(Paint.Cap.ROUND);
 
             mTimePaint = new Paint();
-            mTimePaint.setARGB(255, 3, 115, 115);
+            mTimePaint.setARGB(255, 255, 255, 255);
             mTimePaint.setStrokeWidth(2.f);
             mTimePaint.setTextSize(40);
             mTimePaint.setAntiAlias(true);
 
             mProgressPaint = new Paint();
-            mProgressPaint.setARGB(255, 217, 174, 48);
+            mProgressPaint.setARGB(255, 122, 124, 144);
             mProgressPaint.setStrokeWidth(20.f);
             mProgressPaint.setAntiAlias(true);
+
+            mSpeedPaint = new Paint();
+            mSpeedPaint.setARGB(255, 121, 242, 183);
+            mSpeedPaint.setTextSize(30);
 
             /* 타임 객체를 생성합니다 */
             mTime = new Time();
@@ -199,44 +186,24 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
                     || mBackgroundScaledBitmap.getHeight() != height) {
                 mBackgroundScaledBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
                         width, height, true /* filter */);
+
+                mTopBitmap = Bitmap.createScaledBitmap(mTopBitmap,
+                        width, height, true /* filter */);
             }
             canvas.drawBitmap(mBackgroundScaledBitmap, 0, 0, null);
+            canvas.drawBitmap(mTopBitmap, 0, 0, null);
 
             /* 중심 좌표를 구합니다. */
             float centerX = width / 2f;
             float centerY = height / 2f;
 
-            /* 각 침들의 각도와 길이를 계산합니다. */
-            float secRot = mTime.second / 30f * (float) Math.PI;
-            int minutes = mTime.minute;
-            float minRot = minutes / 30f * (float) Math.PI;
-            float hrRot = ((mTime.hour + (minutes / 60f)) / 6f ) * (float) Math.PI;
 
-            float secLength = centerX - 20;
-            float minLength = centerX - 40;
-            float hrLength = centerX - 80;
-
-            /* Interactive 모드일 때에는, 초침을 그립니다. */
-            if (!isInAmbientMode()) {
-                float secX = (float) Math.sin(secRot) * secLength;
-                float secY = (float) -Math.cos(secRot) * secLength;
-                canvas.drawLine(centerX, centerY, centerX + secX, centerY +
-                        secY, mSecondPaint);
-
-            }
-
-            // Draw the minute and hour hands.
-            float minX = (float) Math.sin(minRot) * minLength;
-            float minY = (float) -Math.cos(minRot) * minLength;
-            canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY,
-                    mMinutePaint);
-            float hrX = (float) Math.sin(hrRot) * hrLength;
-            float hrY = (float) -Math.cos(hrRot) * hrLength;
-            canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY,
-                    mHourPaint);
-
-            canvas.drawText("" + mTime.hour + " : " + mTime.minute + " : " + mTime.second , 100 , 200 , mTimePaint);
-            canvas.drawRect(0, 160, 200, 170, mProgressPaint);
+            // time
+            canvas.drawText(String.format("%02d : %02d : %02d",mTime.hour, mTime.minute, mTime.second), 65 , 235 , mTimePaint);
+            // progress bar
+            canvas.drawRect(0, 140, 320 * mTime.second / 60.0f , 160, mProgressPaint);
+            // speed
+            canvas.drawText(String.format("%03d", (int)(Math.sin(mTime.second) * 50 + 50 )), 135 , 120 ,mSpeedPaint);
         }
     }
 }
