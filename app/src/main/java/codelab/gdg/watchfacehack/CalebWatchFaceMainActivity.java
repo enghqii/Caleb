@@ -1,6 +1,7 @@
 package codelab.gdg.watchfacehack;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -27,13 +28,15 @@ public class CalebWatchFaceMainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 //send Message
+                finish();
             }
         });
 
         btnSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(CalebWatchFaceMainActivity.this, "go setting", Toast.LENGTH_SHORT);
+                Toast.makeText(CalebWatchFaceMainActivity.this, "go setting", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(CalebWatchFaceMainActivity.this, CalebWatchFaceConfigureActivity.class));
             }
         });
     }
