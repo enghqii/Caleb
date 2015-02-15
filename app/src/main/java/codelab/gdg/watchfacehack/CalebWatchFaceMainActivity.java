@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 /**
@@ -13,16 +14,16 @@ import android.widget.Toast;
 public class CalebWatchFaceMainActivity extends Activity {
     private static final String TAG = "CalebWatchFaceActivity";
 
-    private Button btnStart;
-    private Button btnSetting;
+    private ImageView btnStart;
+    private ImageView btnSetting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_main);
 
-        btnStart = (Button)findViewById(R.id.act_main_btn_start);
-        btnSetting = (Button)findViewById(R.id.act_main_btn_setting);
+        btnStart = (ImageView)findViewById(R.id.act_main_btn_start);
+        btnSetting = (ImageView)findViewById(R.id.act_main_btn_setting);
 
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
