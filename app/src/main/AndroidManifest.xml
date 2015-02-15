@@ -69,10 +69,10 @@
                 android:resource="@drawable/preview_analog_circular" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.companionConfigurationAction"
-                android:value="com.example.android.wearable.watchface.CONFIG_DIGITAL" />
+                android:value="com.gdg.android.wearable.watchface.CONFIG_CALEB" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.wearableConfigurationAction"
-                android:value="com.example.android.wearable.watchface.CONFIG_DIGITAL" />
+                android:value="com.gdg.android.wearable.watchface.CONFIG_CALEB" />
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
                 <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
@@ -83,13 +83,15 @@
             android:name=".CalebWatchFaceMainActivity"
             android:label="@string/caleb_name">
             <intent-filter>
-                <action android:name="com.google.android.wearable.watchface.CONFIG_DIGITAL" />
+                <action android:name="com.gdg.android.wearable.watchface.CONFIG_CALEB" />
                 <category android:name="com.google.android..wearable.watchface.category.WEARABLE_CONFIGURATION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        
 
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
         <!--
              단, 한개의 웨어러블 앱은 여러개의 Watch Face를 소유할 수 있다.
              따라서 여러 Watch Face를 가진 웨어러블 앱을 만드려면 여러개의 Service를 생성하면 된다.
