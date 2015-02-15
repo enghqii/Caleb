@@ -38,9 +38,13 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
         /* 그래픽 객체 */
         Bitmap  mBackgroundBitmap;
         Bitmap  mBackgroundScaledBitmap;
+
         Paint   mHourPaint;
         Paint   mMinutePaint;
         Paint   mSecondPaint;
+
+        Paint   mTimePaint;
+        Paint   mProgressPaint;
 
         /* Interactive 모드일 때, 1초에 한번 시간을 업데이트 하기 위해 사용하는 핸들러 */
         final Handler mUpdateTimeHandler = new Handler() {
@@ -115,6 +119,17 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
             mSecondPaint.setStrokeWidth(2.f);
             mSecondPaint.setAntiAlias(true);
             mSecondPaint.setStrokeCap(Paint.Cap.ROUND);
+
+            mTimePaint = new Paint();
+            mTimePaint.setARGB(255, 3, 115, 115);
+            mTimePaint.setStrokeWidth(2.f);
+            mTimePaint.setTextSize(40);
+            mTimePaint.setAntiAlias(true);
+
+            mProgressPaint = new Paint();
+            mProgressPaint.setARGB(255, 217, 174, 48);
+            mProgressPaint.setStrokeWidth(20.f);
+            mProgressPaint.setAntiAlias(true);
 
             /* 타임 객체를 생성합니다 */
             mTime = new Time();
@@ -220,7 +235,8 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
             canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY,
                     mHourPaint);
 
-            canvas.drawText("" + mTime.hour + " : " + mTime.minute + " : " + mTime.second , 100 , 100 , mHourPaint);
+            canvas.drawText("" + mTime.hour + " : " + mTime.minute + " : " + mTime.second , 100 , 200 , mTimePaint);
+            canvas.drawRect(0, 160, 200, 170, mProgressPaint);
         }
     }
 }
