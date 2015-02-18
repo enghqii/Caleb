@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -30,7 +31,7 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
     private class Engine extends CanvasWatchFaceService.Engine {
 
         static final int MSG_UPDATE_TIME = 0;
-        final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
+        final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.MILLISECONDS.toMillis(100);
 
         /* 타임 객체 */
         Time mTime;
@@ -39,11 +40,12 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
         Bitmap  mBackgroundBitmap;
         Bitmap  mBackgroundScaledBitmap;
 
-        Bitmap  mTopBitmap;
-
         Paint   mTimePaint;
         Paint   mProgressPaint;
         Paint   mSpeedPaint;
+
+        Paint   mGoalDone;
+        Paint   mGoalLeft;
 
         /* Interactive 모드일 때, 1초에 한번 시간을 업데이트 하기 위해 사용하는 핸들러 */
         final Handler mUpdateTimeHandler = new Handler() {
@@ -99,7 +101,6 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
             Resources resources = AnalogWatchFaceService.this.getResources();
             Drawable backgroundDrawable = resources.getDrawable(R.drawable.bg);
             mBackgroundBitmap = ((BitmapDrawable) backgroundDrawable).getBitmap();
-            mTopBitmap = ((BitmapDrawable) resources.getDrawable(R.drawable.top)).getBitmap();
 
             /* 그래픽 객체를 생성합니다 */
 
@@ -107,6 +108,7 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
             mTimePaint.setARGB(255, 255, 255, 255);
             mTimePaint.setStrokeWidth(2.f);
             mTimePaint.setTextSize(40);
+            mTimePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             mTimePaint.setAntiAlias(true);
 
             mProgressPaint = new Paint();
@@ -116,10 +118,21 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
 
             mSpeedPaint = new Paint();
             mSpeedPaint.setARGB(255, 121, 242, 183);
-            mSpeedPaint.setTextSize(30);
+            mSpeedPaint.setTextSize(35);
+            mSpeedPaint.setAntiAlias(true);
+            mSpeedPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+            mGoalDone = new Paint();
+            mGoalDone.setARGB(255, 120, 124, 144);
+            mGoalDone.setTextSize(20);
+            mGoalDone.setAntiAlias(true);
+            mGoalDone.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 
             /* 타임 객체를 생성합니다 */
             mTime = new Time();
+            mProgressPaint.setARGB(255, 122, 124, 144);
+            mProgressPaint.setStrokeWidth(20.f);
+            mProgressPaint.setAntiAlias(true);
         }
 
         private void updateTimer() {
@@ -186,12 +199,8 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
                     || mBackgroundScaledBitmap.getHeight() != height) {
                 mBackgroundScaledBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
                         width, height, true /* filter */);
-
-                mTopBitmap = Bitmap.createScaledBitmap(mTopBitmap,
-                        width, height, true /* filter */);
             }
             canvas.drawBitmap(mBackgroundScaledBitmap, 0, 0, null);
-            canvas.drawBitmap(mTopBitmap, 0, 0, null);
 
             /* 중심 좌표를 구합니다. */
             float centerX = width / 2f;
@@ -200,10 +209,16 @@ public class AnalogWatchFaceService extends CanvasWatchFaceService {
 
             // time
             canvas.drawText(String.format("%02d : %02d : %02d",mTime.hour, mTime.minute, mTime.second), 65 , 235 , mTimePaint);
+
             // progress bar
-            canvas.drawRect(0, 140, 320 * mTime.second / 60.0f , 160, mProgressPaint);
+
+            int goalLeft = (int)(320 * mTime.second / 60.0f);
+
+            canvas.drawRect(0, 132, goalLeft , 162, mSpeedPaint);
+            canvas.drawText("" + goalLeft, 10, 152, mGoalDone);
+
             // speed
-            canvas.drawText(String.format("%03d", (int)(Math.sin(mTime.second) * 50 + 50 )), 135 , 120 ,mSpeedPaint);
+            canvas.drawText(String.format("%03d", (int) (Math.sin(mTime.second) * 3 + 150)), 135 , 110 ,mSpeedPaint);
         }
     }
 }

@@ -44,6 +44,12 @@
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview_circular"
                 android:resource="@drawable/preview_analog_circular" />
+            <meta-data
+                android:name="com.google.android.wearable.watchface.companionConfigurationAction"
+                android:value="codelab.gdg.watchfacehack.CONFIG_CALEB" />
+            <meta-data
+                android:name="com.google.android.wearable.watchface.wearableConfigurationAction"
+                android:value="codelab.gdg.watchfacehack.CONFIG_CALEB" />
 
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
@@ -69,12 +75,12 @@
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview_circular"
                 android:resource="@drawable/preview_analog_circular" />
-            <meta-data
+            <!--meta-data
                 android:name="com.google.android.wearable.watchface.companionConfigurationAction"
                 android:value="codelab.gdg.watchfacehack.CONFIG_CALEB" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.wearableConfigurationAction"
-                android:value="codelab.gdg.watchfacehack.CONFIG_CALEB" />
+                android:value="codelab.gdg.watchfacehack.CONFIG_CALEB" /-->
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
                 <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
